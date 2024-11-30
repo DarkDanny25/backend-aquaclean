@@ -34,21 +34,15 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 );
 
-// Ruta raíz amigable
+// Ruta raíz del backend en producción
 app.get("/", (req, res) => {
   res.json({
     message: "Bienvenido al backend de AquaClean",
     info: "Este es un servicio API para gestionar contactos, usuarios y suscripciones.",
-    routes: {
-      "/api/contact": "Ruta para obtener y agregar contactos.",
-      "/api/user": "Ruta para manejar usuarios (registro, login).",
-      "/api/push": "Ruta para gestionar suscripciones de notificaciones push.",
-    },
-    note: "Para más detalles sobre cómo usar la API, consulta la documentación.",
   });
 });
 
-// Rutas
+// Rutas principales del backend
 app.use("/api/contact", contactRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/push", pushRoutes);
