@@ -17,7 +17,6 @@ router.post('/subscribe', async (req, res) => {
     console.log("Suscripción recibida:", subscription);
     console.log("userId recibido:", userId);
 
-    // Verificar si ya existe una suscripción para el mismo userId y endpoint
     const existingSubscription = await Subscription.findOne({
       userId,
       endpoint: subscription.endpoint,
@@ -28,7 +27,6 @@ router.post('/subscribe', async (req, res) => {
       return res.status(200).json({ message: 'Suscripción ya registrada' });
     }
 
-    // Guardar nueva suscripción asociada al userId
     const newSubscription = new Subscription({
       ...subscription,
       userId,
