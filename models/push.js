@@ -6,7 +6,8 @@ const subscriptionSchema = new mongoose.Schema({
   keys: {
     p256dh: { type: String, required: true },
     auth: { type: String, required: true }
-  }
+  },
+  userId: { type: String, required: true }
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
