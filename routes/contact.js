@@ -4,13 +4,20 @@ const Contact = require('../models/contact');
 
 // Ruta para manejar el envío del formulario de contacto
 router.post('/', async (req, res) => {
-  const { name, email, message, topic } = req.body;
+  const { name, email, message, topic, userId } = req.body;
+
+  // Verificación de campos requeridos
+  if (!name || !email || !message || !topic || !userId) {
+    return res.status(400).json({ message: 'Faltan campos requeridos.' });
+  }
+
   try {
-    const newContact = new Contact({ name, email, message, topic });
+    const newContact = new Contact({ name, email, message, topic, userId });
     await newContact.save();
     res.status(201).json({ message: 'Mensaje enviado exitosamente' });
   } catch (error) {
-    res.status(500).json({ message: 'Error al enviar el mensaje', error });
+    console.error('Error al guardar el contacto:', error); // Imprimir el error en la consola para depurar
+    res.status(500).json({ message: 'Error al enviar el mensaje', error: error.message });
   }
 });
 
