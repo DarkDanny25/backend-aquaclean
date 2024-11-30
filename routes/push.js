@@ -9,8 +9,11 @@ router.post('/subscribe', async (req, res) => {
 
   console.log('Datos recibidos en /subscribe:', req.body);
 
+  // Validar campos requeridos
   if (!subscriptionId || !endpoint || !keys || !keys.p256dh || !keys.auth) {
-    return res.status(400).json({ message: 'Faltan datos requeridos para registrar la suscripción.' });
+    return res.status(400).json({
+      message: 'Faltan datos requeridos para registrar la suscripción.',
+    });
   }
 
   try {
@@ -35,18 +38,20 @@ router.post('/subscribe', async (req, res) => {
     res.status(201).json({ message: 'Suscripción registrada con éxito' });
   } catch (err) {
     console.error('Error al registrar la suscripción:', err);
-    res.status(500).json({ message: 'Error interno al registrar la suscripción' });
+    res.status(500).json({ message: 'Error interno del servidor al registrar la suscripción' });
   }
 });
 
-// Ruta para enviar una notificación push
+// Ruta para enviar una notificación push a un usuario específico
 router.post('/send-notification', async (req, res) => {
   const { subscriptionId, title, message } = req.body;
 
   console.log('Datos recibidos en /send-notification:', req.body);
 
   if (!subscriptionId || !title || !message) {
-    return res.status(400).json({ message: 'Faltan datos requeridos para enviar la notificación.' });
+    return res.status(400).json({
+      message: 'Faltan datos requeridos para enviar la notificación.',
+    });
   }
 
   try {
@@ -66,13 +71,13 @@ router.post('/send-notification', async (req, res) => {
         await Subscription.deleteOne({ _id: subscription._id });
         res.status(410).json({ message: 'Suscripción caducada, eliminada' });
       } else {
-        console.error('Error al enviar la notificación:', err);
-        res.status(500).json({ message: 'Error al enviar la notificación' });
+        console.error('Error al enviar la notificación push:', err);
+        res.status(500).json({ message: 'Error al enviar la notificación push' });
       }
     }
   } catch (err) {
     console.error('Error al buscar la suscripción:', err);
-    res.status(500).json({ message: 'Error interno al enviar la notificación' });
+    res.status(500).json({ message: 'Error al enviar la notificación' });
   }
 });
 
