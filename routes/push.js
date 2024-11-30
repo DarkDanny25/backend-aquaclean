@@ -1,7 +1,7 @@
 const express = require('express');
 const webpush = require('web-push');
 const router = express.Router();
-const Subscription = require('../models/push');
+const Subscription = require('../models/push'); // Asegúrate de que el modelo sea correcto
 
 // Ruta para registrar la suscripción
 router.post('/subscribe', async (req, res) => {
@@ -68,6 +68,7 @@ router.post('/send-notification', async (req, res) => {
       } catch (err) {
         // Eliminar suscripciones inválidas
         if (err.statusCode === 410) {
+          console.log("Suscripción inválida, eliminando...");
           await Subscription.deleteOne({ _id: subscription._id });
         }
       }

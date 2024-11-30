@@ -1,22 +1,34 @@
 const express = require('express');
+const axios = require('axios');
 const router = express.Router();
-const Contact = require('../models/contact');
+const { Contact } = require('../models/contact');
 
-// Ruta para manejar el envío del formulario de contacto
+// Ruta para manejar el formulario de contacto
 router.post('/', async (req, res) => {
   const { name, email, message, topic, userId } = req.body;
-
-  // Verificación de campos requeridos
+  
   if (!name || !email || !message || !topic || !userId) {
+    console.log("Campos faltantes en la solicitud:", { name, email, message, topic, userId }); // Depuración
     return res.status(400).json({ message: 'Faltan campos requeridos.' });
   }
 
   try {
+    console.log("Guardando contacto:", { name, email, message, topic, userId }); // Depuración
     const newContact = new Contact({ name, email, message, topic, userId });
     await newContact.save();
+
+    // Enviar notificación push
+    const pushNotification = await axios.post('https://backend-aquaclean.onrender.com/api/push/send-notification', {
+      title: '¡Gracias por contactarnos!',
+      message: 'Tu mensaje ha sido enviado correctamente.',
+      userId,
+    });
+
+    console.log("Notificación push enviada:", pushNotification); // Depuración
+
     res.status(201).json({ message: 'Mensaje enviado exitosamente' });
   } catch (error) {
-    console.error('Error al guardar el contacto:', error); // Imprimir el error en la consola para depurar
+    console.error('Error al guardar el contacto:', error); // Depuración
     res.status(500).json({ message: 'Error al enviar el mensaje', error: error.message });
   }
 });
