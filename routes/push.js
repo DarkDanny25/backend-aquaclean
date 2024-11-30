@@ -7,14 +7,16 @@ const Subscription = require('../models/push');
 router.post('/subscribe', async (req, res) => {
   const { subscriptionId, endpoint, expirationTime, keys } = req.body;
 
-  console.log('Datos recibidos en /subscribe:', req.body);  // Imprime los datos que llegan al backend
+  console.log('Datos recibidos en /subscribe:', req.body);
+
+  if (!subscriptionId || !endpoint || !keys || !keys.p256dh || !keys.auth) {
+    return res.status(400).json({ message: 'Faltan datos requeridos para registrar la suscripción.' });
+  }
 
   try {
-    // Verificar si ya existe una suscripción con el mismo subscriptionId
     let existingSubscription = await Subscription.findOne({ subscriptionId });
 
     if (existingSubscription) {
-      // Si existe, actualizamos la suscripción
       existingSubscription.endpoint = endpoint;
       existingSubscription.expirationTime = expirationTime;
       existingSubscription.keys = keys;
@@ -22,7 +24,6 @@ router.post('/subscribe', async (req, res) => {
       return res.status(200).json({ message: 'Suscripción actualizada correctamente' });
     }
 
-    // Si no existe, creamos una nueva suscripción
     const newSubscription = new Subscription({
       subscriptionId,
       endpoint,
@@ -33,48 +34,45 @@ router.post('/subscribe', async (req, res) => {
     await newSubscription.save();
     res.status(201).json({ message: 'Suscripción registrada con éxito' });
   } catch (err) {
-    console.error('Error al registrar la suscripción:', err);  // Muestra el error detallado en los logs
-    res.status(500).json({ message: 'Error interno del servidor al registrar la suscripción' });
+    console.error('Error al registrar la suscripción:', err);
+    res.status(500).json({ message: 'Error interno al registrar la suscripción' });
   }
 });
 
-// Ruta para enviar una notificación push a un usuario específico
+// Ruta para enviar una notificación push
 router.post('/send-notification', async (req, res) => {
   const { subscriptionId, title, message } = req.body;
 
-  console.log('Datos recibidos en /send-notification:', req.body);  // Imprime los datos que llegan al backend
+  console.log('Datos recibidos en /send-notification:', req.body);
+
+  if (!subscriptionId || !title || !message) {
+    return res.status(400).json({ message: 'Faltan datos requeridos para enviar la notificación.' });
+  }
 
   try {
-    // Buscar la suscripción de un usuario por subscriptionId
     const subscription = await Subscription.findOne({ subscriptionId });
 
     if (!subscription) {
       return res.status(404).json({ message: 'Suscripción no encontrada' });
     }
 
-    // Crear el payload de la notificación
-    const payload = JSON.stringify({
-      title: title,
-      message: message,
-    });
+    const payload = JSON.stringify({ title, message });
 
-    // Intentar enviar la notificación
     try {
       await webpush.sendNotification(subscription, payload);
       res.status(200).json({ message: 'Notificación enviada correctamente' });
     } catch (err) {
-      // Si la suscripción es inválida (status 410), eliminamos la suscripción
       if (err.statusCode === 410) {
         await Subscription.deleteOne({ _id: subscription._id });
         res.status(410).json({ message: 'Suscripción caducada, eliminada' });
       } else {
-        console.error('Error al enviar la notificación push:', err);  // Muestra el error detallado
-        res.status(500).json({ message: 'Error al enviar la notificación push' });
+        console.error('Error al enviar la notificación:', err);
+        res.status(500).json({ message: 'Error al enviar la notificación' });
       }
     }
   } catch (err) {
-    console.error('Error al buscar la suscripción:', err);  // Muestra el error detallado
-    res.status(500).json({ message: 'Error al enviar la notificación' });
+    console.error('Error al buscar la suscripción:', err);
+    res.status(500).json({ message: 'Error interno al enviar la notificación' });
   }
 });
 
