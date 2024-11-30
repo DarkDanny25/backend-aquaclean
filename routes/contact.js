@@ -1,19 +1,22 @@
+// routes/contact.js
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const { Contact } = require('../models/contact');
+const Contact = require('../models/contact');  // Importa el modelo directamente
 
 // Ruta para manejar el formulario de contacto
 router.post('/', async (req, res) => {
   const { name, email, message, topic, userId } = req.body;
   
   if (!name || !email || !message || !topic || !userId) {
-    console.log("Campos faltantes en la solicitud:", { name, email, message, topic, userId }); // Depuración
+    console.log("Campos faltantes en la solicitud:", { name, email, message, topic, userId });
     return res.status(400).json({ message: 'Faltan campos requeridos.' });
   }
 
   try {
-    console.log("Guardando contacto:", { name, email, message, topic, userId }); // Depuración
+    console.log("Guardando contacto:", { name, email, message, topic, userId });
+
+    // Aquí instancias el modelo correctamente
     const newContact = new Contact({ name, email, message, topic, userId });
     await newContact.save();
 
@@ -24,16 +27,16 @@ router.post('/', async (req, res) => {
       userId,
     });
 
-    console.log("Notificación push enviada:", pushNotification); // Depuración
+    console.log("Notificación push enviada:", pushNotification);
 
     res.status(201).json({ message: 'Mensaje enviado exitosamente' });
   } catch (error) {
-    console.error('Error al guardar el contacto:', error); // Depuración
+    console.error('Error al guardar el contacto:', error); 
     res.status(500).json({ message: 'Error al enviar el mensaje', error: error.message });
   }
 });
 
-// Ruta para obtener todos los contactos
+// Rutas GET, PUT, DELETE
 router.get('/', async (req, res) => {
   try {
     const contacts = await Contact.find();
@@ -43,7 +46,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Ruta para obtener un contacto por ID
 router.get('/:id', async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
@@ -56,7 +58,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Ruta para actualizar un contacto
 router.put('/:id', async (req, res) => {
   const { name, email, message, topic } = req.body;
   try {
@@ -73,7 +74,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Ruta para eliminar un contacto
 router.delete('/:id', async (req, res) => {
   try {
     const deletedContact = await Contact.findByIdAndDelete(req.params.id);
