@@ -12,6 +12,9 @@ router.post('/subscribe', async (req, res) => {
   }
 
   try {
+    console.log("Suscripción recibida:", subscription); // Depuración
+    console.log("userId:", userId); // Depuración
+
     // Verificar si ya existe una suscripción para el mismo userId y endpoint
     const existingSubscription = await Subscription.findOne({
       userId,
@@ -31,6 +34,7 @@ router.post('/subscribe', async (req, res) => {
 
     res.status(201).json({ message: 'Suscripción registrada con éxito' });
   } catch (err) {
+    console.error("Error al registrar suscripción:", err); // Depuración
     res.status(500).json({ message: 'Error al registrar la suscripción' });
   }
 });
@@ -51,6 +55,8 @@ router.post('/send-notification', async (req, res) => {
       return res.status(404).json({ message: 'No hay suscripciones registradas para este usuario' });
     }
 
+    console.log("Suscripciones encontradas:", subscriptions); // Depuración
+
     for (const subscription of subscriptions) {
       const payload = JSON.stringify({
         title: title,
@@ -69,6 +75,7 @@ router.post('/send-notification', async (req, res) => {
 
     res.status(200).json({ message: 'Notificaciones enviadas' });
   } catch (err) {
+    console.error("Error al enviar notificaciones:", err); // Depuración
     res.status(500).json({ message: 'Error al enviar las notificaciones' });
   }
 });
