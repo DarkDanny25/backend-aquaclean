@@ -42,64 +42,52 @@ router.post('/login', async (req, res) => {
   }
 });
 
-//Ruta para contraseña olvidada
+// Ruta para contraseña olvidada
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Buscar usuario por correo
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Generar un token de restablecimiento
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // Guardar el token y la fecha de expiración en la base de datos (opcional)
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000;  // Token expira en 1 hora
+    user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
 
-    // Devolver el token para que el frontend lo use
     res.status(200).json({
       message: 'Token generado exitosamente',
       resetToken,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Error al generar el token', error });
   }
 });
 
-//Ruta para restablecer contraseña
+// Ruta para restablecer contraseña
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
-    // Verificar el token y extraer el ID del usuario
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica el token
-
-    // Buscar al usuario por el ID extraído del token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Verificar si el token ha expirado
     if (user.resetPasswordExpires < Date.now()) {
       return res.status(400).json({ message: 'El token ha expirado' });
     }
 
-    // Actualizar la contraseña
-    user.password = newPassword; // Aquí puedes aplicar validaciones de la contraseña si es necesario
-    user.resetPasswordToken = null; // Limpiar el token
-    user.resetPasswordExpires = null; // Limpiar la fecha de expiración
+    user.password = newPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
     await user.save();
 
     res.status(200).json({ message: 'Contraseña restablecida exitosamente' });
   } catch (error) {
-    console.error(error);
     res.status(400).json({ message: 'Token inválido o expirado', error });
   }
 });
@@ -107,7 +95,7 @@ router.post('/reset-password', async (req, res) => {
 // Obtener perfil del usuario
 router.get('/profile', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password'); // Excluye el campo 'password'
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
@@ -147,7 +135,6 @@ router.delete('/delete-account', verifyToken, async (req, res) => {
     }
     res.status(200).json({ message: 'Cuenta eliminada exitosamente' });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Ocurrió un error al eliminar la cuenta' });
   }
 });
