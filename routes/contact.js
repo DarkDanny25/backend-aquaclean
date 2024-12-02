@@ -16,54 +16,11 @@ router.post('/', async (req, res) => {
 
 // Ruta para obtener todos los contactos
 router.get('/', async (req, res) => {
-  const { lastCheckedDate } = req.query; // Fecha del último acceso
-  console.log('lastCheckedDate:', lastCheckedDate); // Log para depuración
-
   try {
-    let query = {};
-    
-    if (lastCheckedDate) {
-      console.log('Filtrando contactos con fecha posterior a:', lastCheckedDate); // Log para depuración
-      query = { createdAt: { $gt: new Date(lastCheckedDate) } }; // Asegúrate de que createdAt esté disponible en el modelo
-    }
-
-    const contacts = await Contact.find(query);
-    console.log('Contactos encontrados:', contacts); // Log para depuración
-
-    const newContactsCount = contacts.length;
-    console.log('Número de nuevos contactos:', newContactsCount); // Log para depuración
-
-    // Si hay nuevos contactos, enviamos una notificación push
-    if (newContactsCount > 0) {
-      const subscriptions = await Subscription.find();
-      console.log('Enviando notificaciones a las siguientes suscripciones:', subscriptions.length); // Log para depuración
-
-      const title = "Nuevos contactos registrados";
-      const messageContent = `¡Hay ${newContactsCount} nuevos contactos!`;
-
-      const promises = subscriptions.map(async (subscription) => {
-        const payload = JSON.stringify({
-          title,
-          body: messageContent,
-        });
-
-        try {
-          await webpush.sendNotification(subscription, payload);
-        } catch (error) {
-          console.error('Error al enviar la notificación:', error);
-        }
-      });
-
-      await Promise.all(promises);
-    }
-
+    const contacts = await Contact.find();
     res.status(200).json(contacts);
   } catch (error) {
-    console.error('Error al obtener los contactos:', error);
-    res.status(500).json({
-      message: 'Error al obtener los contactos',
-      error,
-    });
+    res.status(500).json({ message: 'Error al obtener los contactos', error });
   }
 });
 
