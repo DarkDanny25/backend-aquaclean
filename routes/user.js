@@ -12,10 +12,19 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: 'El usuario ya está registrado' });
     }
+
     const role = email.endsWith('@aquaclean.io') ? 'admin' : 'user';
     const newUser = new User({ name, email, password, role });
     await newUser.save();
-    res.status(201).json({ message: 'Usuario registrado exitosamente' });
+
+    if (role === 'admin') {
+      return res.status(201).json({ message: 'Usuario registrado exitosamente', role: 'admin' });
+    } else {
+      return res.status(201).json({ 
+        message: 'Registro exitoso, pero no tienes acceso al área administrativa. Por favor, usa un correo de dominio @aquaclean.io para acceder.',
+        role: 'user' 
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Error en el registro', error });
   }
