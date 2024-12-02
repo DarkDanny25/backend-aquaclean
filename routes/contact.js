@@ -17,26 +17,30 @@ router.post('/', async (req, res) => {
 // Ruta para obtener todos los contactos
 router.get('/', async (req, res) => {
   const { lastCheckedDate } = req.query; // Fecha del último acceso
+  console.log('lastCheckedDate:', lastCheckedDate); // Log para depuración
+
   try {
-    // Si lastCheckedDate se pasa, filtrar los contactos que fueron creados después de esa fecha
     let query = {};
+    
     if (lastCheckedDate) {
+      console.log('Filtrando contactos con fecha posterior a:', lastCheckedDate); // Log para depuración
       query = { createdAt: { $gt: new Date(lastCheckedDate) } }; // Asegúrate de que createdAt esté disponible en el modelo
     }
-    const contacts = await Contact.find(query);
 
-    // Verificamos cuántos contactos nuevos hay
+    const contacts = await Contact.find(query);
+    console.log('Contactos encontrados:', contacts); // Log para depuración
+
     const newContactsCount = contacts.length;
+    console.log('Número de nuevos contactos:', newContactsCount); // Log para depuración
 
     // Si hay nuevos contactos, enviamos una notificación push
     if (newContactsCount > 0) {
       const subscriptions = await Subscription.find();
+      console.log('Enviando notificaciones a las siguientes suscripciones:', subscriptions.length); // Log para depuración
 
-      // Crear el mensaje para la notificación
       const title = "Nuevos contactos registrados";
       const messageContent = `¡Hay ${newContactsCount} nuevos contactos!`;
 
-      // Enviar la notificación a todos los administradores suscritos
       const promises = subscriptions.map(async (subscription) => {
         const payload = JSON.stringify({
           title,
@@ -53,9 +57,9 @@ router.get('/', async (req, res) => {
       await Promise.all(promises);
     }
 
-    // Responder con los contactos
     res.status(200).json(contacts);
   } catch (error) {
+    console.error('Error al obtener los contactos:', error);
     res.status(500).json({
       message: 'Error al obtener los contactos',
       error,
